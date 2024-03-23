@@ -1,25 +1,77 @@
-import logo from './logo.svg';
-import './App.css';
+import React, { useState } from "react";
+import "./App.css";
 
-function App() {
+const App = ({ value, isRoot, onRemove, parentRemove }) => {
+  const [subOptions, setSubOptions] = useState([]);
+
+  const handleAddSubOption = () => {
+    const newValue = subOptions.length === 0 ? value : value + 1;
+    setSubOptions((prevSubOptions) => [
+      ...prevSubOptions,
+      <App
+        key={newValue}
+        value={newValue}
+        onRemove={() => handleRemoveChild(newValue)}
+        parentRemove={onRemove}
+      />,
+    ]);
+  };
+
+  const handleRemoveChild = (childValue) => {
+    setSubOptions((prevSubOptions) =>
+      prevSubOptions.filter((option) => option.props.value !== childValue)
+    );
+  };
+
+  const handleRemoveParent = () => {
+    if (isRoot) {
+      onRemove();
+    } else {
+      parentRemove(value);
+    }
+  };
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div style={{ paddingLeft: 15 }}>
+      <span>-{value}</span>
+      <button className="increment" onClick={handleAddSubOption}>
+        +
+      </button>
+      <button className="decrement" onClick={handleRemoveParent}>
+        -
+      </button>
+      {subOptions}
     </div>
   );
-}
+};
 
-export default App;
+const MainApp = () => {
+  const [value] = useState(1);
+  const [isMainAppVisible, setIsMainAppVisible] = useState(true);
+  const [subOptions, setSubOptions] = useState([]);
+
+  const handleRemoveMain = () => {
+    setIsMainAppVisible(false);
+  };
+
+  const handleRemoveChild = (childValue) => {
+    setSubOptions((prevSubOptions) =>
+      prevSubOptions.filter((option) => option.props.value !== childValue)
+    );
+  };
+
+  return (
+    <div>
+      {isMainAppVisible && (
+        <App
+          value={value}
+          isRoot
+          onRemove={handleRemoveMain}
+          parentRemove={handleRemoveChild}
+        />
+      )}
+    </div>
+  );
+};
+
+export default MainApp;
